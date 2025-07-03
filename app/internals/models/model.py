@@ -14,7 +14,7 @@ class User(db.Model):
     pin_code = db.Column(db.String(10), nullable=False)
     created_at = db.Column(db.DateTime(), default=db.func.current_timestamp(), nullable=False)
     role = db.Column(db.Enum('admin', 'user'),default='user', nullable=False)
-
+    
     def set_password(self, password):   
         self.password = generate_password_hash(password)
 
