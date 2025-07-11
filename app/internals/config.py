@@ -9,5 +9,4 @@ class LocalDevlopmentConfig(Config):
     JWT_SECRET_KEY = 'this-is-a-secret'   
     JWT_TOKEN_LOCATION = 'cookies'
     JWT_ACCESS_COOKIE_NAME = 'access_token'
-    JWT_COOKIE_CSRF_PROTECT = False  # Optional, disable for simplicity in dev
-
+    JWT_COOKIE_CSRF_PROTECT = False  # Optional, disable for simplicity in development

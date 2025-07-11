@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% include 'navbar.html' %}
+
+{% block body %}
+<div class="container mt-4">
+   <div class="card shadow p-4">
+        <h4 class="text-center text-primary mb-4">View/Delete Parking Spot</h4>
+        <div class="mb-3"><strong>Spot ID:</strong> {{ spot.id }}</div>
+        <div class="mb-3"><strong>Status:</strong> {{ spot.status | capitalize }}</div>
+
+        {% if spot.status == 'available' %}
+            <form method="POST" action="{{ url_for('delete_spot', spot_id=spot.id) }}">
+                <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this spot?')">Delete Spot</button>
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">Close</a>
+            </form>
+        {% else %}
+            <hr>
+            <h5 class="text-info mb-3">Occupied Parking Spot Details</h5>
+            <div><strong>Customer ID:</strong> {{ reservation.user.id }}</div>
+            <div><strong>Vehicle Number:</strong> {{ reservation.vehicle_number }}</div>
+            <div><strong>Date/Time of Parking:</strong> {{ reservation.parking_in_time }}</div>
+            <div><strong>Estimated Exit Time:</strong> {{ reservation.parking_out_time }}</div>
+            <div><strong>Estimated Parking Cost:</strong> ₹{{ reservation.total_amount }}</div>
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary mt-3">Close</a>
+        {% endif %}           
+   </div>
+</div>
+{% endblock %}

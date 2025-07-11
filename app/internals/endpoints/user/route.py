@@ -1,6 +1,7 @@
 from datetime import timedelta
 from flask import make_response
 from app.internals.endpoints.__init__ import *
+from app.internals.dals.access import role_required
 from app.internals.models.model import *
 from flask_jwt_extended import jwt_required, create_access_token, current_user
 from app.internals.endpoints.auth.form import *
@@ -8,6 +9,7 @@ from app.internals.endpoints.auth.form import *
 
 @app.route('/user', methods=['GET'])
 @jwt_required()
+@role_required('user')
 def user():
     user = current_user
     if user.role != 'user':
@@ -23,5 +25,5 @@ def user():
         ],
         'logout': True
     }
-    return render_template('user/user.html', user=current_user, **nav_data, 
+    return render_template('user/dashboard.html', user=current_user, **nav_data, 
                            access_token=request.cookies.get('access_token'))

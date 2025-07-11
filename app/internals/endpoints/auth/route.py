@@ -33,16 +33,17 @@ def login():
         return render_template('auth/login.html',form=form,**nav_data)
     
     access_token = create_access_token(
-        identity=user.username,
-        additional_claims={
-            'role': user.role,
-            'user_id': user.id,
-        },
-        expires_delta=timedelta(hours=1)
+    identity=user.username,
+    additional_claims={
+        "id": user.id,
+        "role": user.role
+    },
+    expires_delta=timedelta(hours=1)
     )
+
     if user.role == 'admin':
         flash("Welcome Admin", "success")
-        resp = make_response(redirect(url_for('admin')))
+        resp = make_response(redirect(url_for('admin_dashboard')))
     else:
         flash("Welcome User", "success")
         resp = make_response(redirect(url_for('user')))
