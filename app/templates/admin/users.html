@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% include 'navbar.html' %}
+
+{% block body %}
+<div class="container mt-4">
+    <h3 class="text-center mt-4 mb-3 border-bottom pb-2">Registered Users</h3>
+
+    <div class="table-responsive border rounded p-3 shadow-sm">
+        <table class="table table-striped table-bordered text-center align-middle">
+            <thead class="table-primary">
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">E-Mail</th>
+                    <th scope="col">Full Name</th>
+                    <th scope="col">Address</th>
+                    <th scope="col">Pin Code</th>
+                    <th scope="col">Current Spot</th>  
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in users %}
+        <tr>
+            <td>{{ user.id }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.name }}</td>
+            <td>{{ user.address }}</td>
+            <td>{{ user.pin_code }}</td>
+            <td>
+                {% if user.spots %}
+                    {% for spot in user.spots %}
+                        <span class="badge bg-success">{{ spot }}</span><br>
+                    {% endfor %}
+                {% else %}
+                    <span class="text-muted">No spots</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+    </div>
+</div>
+{% endblock %}

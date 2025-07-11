@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% include 'navbar.html' %}
+
+{% block body %}
+<div class="container mt-4">
+    <h2 class="text-center text-primary mb-4">Parking Lot Details</h2>
+    <div class="card shadow p-4">
+        <div class="mb-3"><strong>Lot ID:</strong> {{ lot.id }}</div>
+        <div class="mb-3"><strong>Address:</strong> {{ lot.address }}</div>
+        <div class="mb-3"><strong>Pin Code:</strong> {{ lot.pin_code }}</div>
+        <div class="mb-3"><strong>Capacity:</strong> {{ lot.total_spots }}</div>
+        <div class="mb-3"><strong>Price per Hour:</strong> ₹{{ lot.price_per_hour }}</div>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">Close</a>
+    </div>
+</div>
+{% endblock %}
