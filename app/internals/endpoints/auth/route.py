@@ -28,6 +28,7 @@ def login():
     password = request.form.get('password', None)
 
     user = User.query.filter_by(username=username).one_or_none()
+    
     if not user or not user.check_password(password):
         flash("Wrong username or password", "danger")
         return render_template('auth/login.html',form=form,**nav_data)
@@ -46,7 +47,7 @@ def login():
         resp = make_response(redirect(url_for('admin_dashboard')))
     else:
         flash("Welcome User", "success")
-        resp = make_response(redirect(url_for('user')))
+        resp = make_response(redirect(url_for('user_dashboard')))
     resp.set_cookie(
         "access_token",
         access_token,
