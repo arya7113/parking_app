@@ -3,7 +3,65 @@
 
 
 {% block body %}
-<div class="container">
-    <h1>Welcome, USER!</h1>
+<div class="container mt-4">
+    <h2 class="text-center text-primary mb-4">Recent Parking History</h2>
+
+    <table class="table table-bordered shadow">
+        <thead class="table-secondary">
+            <tr>
+                <th>ID</th>
+                <th>Location</th>
+                <th>Vehicle No</th>
+                <th>Parked At</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in reservations %}
+            <tr>
+                <td>{{ r.id }}</td>
+                <td>{{ r.spot.parking_lot.location_name }}</td>
+                <td>{{ r.vehicle_number }}</td>
+                <td>{{ r.parking_in_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>
+                    {% if r.status == 'active' %}
+                    <a href="{{ url_for('release_spot', reservation_id=r.id) }}" class="btn btn-warning btn-sm">Release</a>
+                    {% else %}
+                        <span class="btn btn-success btn-sm disabled">Parked Out</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <hr class="my-5">
+    <h2 class="text-center text-primary mb-4">Book a Parking Spot</h2>
+    <table class="table table-bordered shadow">
+        <thead class="table-secondary">
+            <tr>
+                <th>Lot ID</th>
+                <th>Location</th>
+                <th>Address</th>
+                <th>Available Spot</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for lot in lots %}
+            <tr>
+                <td>{{ lot.id }}</td>
+                <td>{{ lot.location_name }}</td>
+                <td>{{ lot.address }}</td>
+                <td>{{ lot.available_spots }}</td>
+                <td>
+                    {% if lot.available_spots > 0 %}
+                    <a href="{{ url_for('book_spot', lot_id=lot.id) }}" class="btn btn-primary btn-sm">Book</a>
+                    {% else %}
+                        <button class="btn btn-outline-secondary btn-sm" disabled>No Spots</button>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
 </div>
 {% endblock %}

@@ -59,7 +59,7 @@ class Reservation(db.Model):
     spot_id = db.Column(db.Integer(), db.ForeignKey('parking_spot.id'), nullable=False)
     vehicle_number = db.Column(db.String(15), nullable=False)
     parking_in_time = db.Column(db.DateTime(), nullable=False)
-    parking_out_time = db.Column(db.DateTime(), nullable=False)
+    parking_out_time = db.Column(db.DateTime(), nullable=True)
     total_amount = db.Column(db.Float(), nullable=False)
     status = db.Column(db.Enum('active', 'completed', 'cancelled'), default='active', nullable=False)
     user = db.relationship('User', backref=db.backref('reservations', lazy=True))

@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% include 'navbar.html' %}
+
+{% block body %}
+<div class="container mt-4">
+    <h3 class="text-center text-primary mb-4">Release Parking Spot</h3>
+    <form method="POST" action="{{ url_for('release_spot', reservation_id=reservation.id) }}">
+        {{ form.hidden_tag() }}
+
+        <div class="mb-3">
+            {{ form.spot_id.label(class="form-label") }}
+            {{ form.spot_id(class="form-control") }}
+        </div>
+
+        <div class="mb-3">
+            {{ form.vehicle_number.label(class="form-label") }}
+            {{ form.vehicle_number(class="form-control") }}
+        </div>
+
+        <div class="mb-3">
+            {{ form.parking_in_time.label(class="form-label") }}
+            {{ form.parking_in_time(class="form-control") }}
+        </div>
+
+        <div class="mb-3">
+            {{ form.parking_out_time.label(class="form-label") }}
+            {{ form.parking_out_time(class="form-control") }}
+        </div>
+
+        <div class="mb-3">
+            {{ form.total_cost.label(class="form-label") }}
+            <div class="input-group">
+                <span class="input-group-text">₹</span>
+                {{ form.total_cost(class="form-control") }}
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <a href="{{ url_for('user_dashboard') }}" class="btn btn-secondary">Cancel</a>
+            {{ form.submit(class="btn btn-warning") }}
+        </div>
+    </form>
+</div>
+{% endblock %}

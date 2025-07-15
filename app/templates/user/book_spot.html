@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% include 'navbar.html' %}
+
+{% block body %}
+<div class="container mt-4">
+    <h2 class="text-center text-primary mb-4">Book a Parking Spot</h2>
+    <form method="POST" action="{{ url_for('book_spot', lot_id=lot.id) }}">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">
+            {{ form.spot_id.label(class="form-label") }}
+            {{ form.spot_id(class="form-control") }}
+        </div>
+        <div class="mb-3">
+            {{ form.lot_id.label(class="form-label") }}
+            {{ form.lot_id(class="form-control") }}
+        </div>
+        <div class="mb-3">
+            {{ form.user_id.label(class="form-label") }}
+            {{ form.user_id(class="form-control") }}
+        </div>
+        <div class="mb-3">
+            {{ form.vehicle_number.label(class="form-label") }}
+            {{ form.vehicle_number(class="form-control") }}
+        </div>
+        <div class="mb-3">
+            {{ form.parking_in_time.label(class="form-label") }}
+            {{ form.parking_in_time(class="form-control") }}
+        </div>
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <a href="{{ url_for('user_dashboard') }}" class="btn btn-secondary">Cancel</a>
+            {{ form.submit(class="btn btn-warning") }}
+        </div>
+    </form>
+</div>
+{% endblock %}

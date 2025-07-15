@@ -1,5 +1,4 @@
-from datetime import timedelta
-from flask import make_response
+from app.internals.endpoints.user.view import *
 from app.internals.endpoints.__init__ import *
 from app.internals.dals.access import role_required
 from app.internals.models.model import *
@@ -7,23 +6,20 @@ from flask_jwt_extended import jwt_required, create_access_token, current_user
 from app.internals.endpoints.auth.form import *
 
 
-@app.route('/user', methods=['GET'])
+@app.route('/user/dashboard', methods=['GET'])
 @jwt_required()
 @role_required('user')
-def user():
-    user = current_user
-    if user.role != 'user':
-        flash("You do not have permission to access this page", "danger")
-        return redirect(url_for('admin'))
-    nav_data = {
-        'page_title': 'User Profile',
-        'site_title': {'name': 'My Park Place', 'url': Home_Url, 'active': False},
-        'nav_items': [
-            {'text': 'Home', 'url': Home_Url, 'active': False},
-            {'text': 'Register', 'url': Register_Url, 'active': False},
-            {'text': 'Login', 'url': Login_Url, 'active': False}
-        ],
-        'logout': True
-    }
-    return render_template('user/dashboard.html', user=current_user, **nav_data, 
-                           access_token=request.cookies.get('access_token'))
+def user_dashboard():
+    return User_Dashboard()
+
+@app.route('/user/release_spot/<int:reservation_id>', methods=['GET','POST'])
+@jwt_required()
+@role_required('user')
+def release_spot(reservation_id):
+    return Release_Spot(reservation_id)
+
+@app.route('/user/book_spot/<int:lot_id>', methods=['GET', 'POST'])
+@jwt_required()
+@role_required('user')
+def book_spot(lot_id):
+    return Book_Spot(lot_id)

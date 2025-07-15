@@ -1,4 +1,3 @@
-from datetime import timedelta
 from app.internals.endpoints.__init__ import *
 from app.internals.models.model import *
 from flask_jwt_extended import jwt_required, create_access_token, current_user
@@ -202,7 +201,6 @@ def Admin_User_View():
 
     for user in users:
         active_reservations = Reservation.query.filter_by(user_id=user.id, status='active').all()
-        print(f"User {user.id} has {len(active_reservations)} active reservations.")
         spots_info = []
         for res in active_reservations:
             lot_name = Parking_Lots.query.get(res.spot.lot_id).location_name
