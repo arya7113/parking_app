@@ -23,3 +23,9 @@ def release_spot(reservation_id):
 @role_required('user')
 def book_spot(lot_id):
     return Book_Spot(lot_id)
+
+@app.route('/user/summary', methods=['GET'])
+@jwt_required()
+@role_required('user')
+def user_summary():
+    return User_Summary()

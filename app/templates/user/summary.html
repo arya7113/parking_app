@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% include 'navbar.html' %}
+{% block body %}
+<div class="row text-center">
+    <h3 class="text-center text-primary mb-4">{{user.username|upper}}'s. Summary</h3>
+    <div class="col-md-6">
+        <h5>Spending per Parking Lot</h5>
+        {% if pie_chart %}
+            <img src="data:image/png;base64,{{ pie_chart }}" class="img-fluid" alt="Spending Chart">
+        {% else %}
+            <p class="text-muted">No spending data available.</p>
+        {% endif %}
+    </div>
+
+    <div class="col-md-6">
+        <h5>Parking Lot Usage</h5>
+        {% if bar_chart %}
+            <img src="data:image/png;base64,{{ bar_chart }}" class="img-fluid" alt="Usage Chart">
+        {% else %}
+            <p class="text-muted">No parking usage data available.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
