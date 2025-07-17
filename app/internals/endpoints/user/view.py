@@ -1,4 +1,8 @@
+import base64
 from datetime import datetime
+import io
+
+from matplotlib import pyplot as plt
 from app.internals.endpoints.user.view import *
 from app.internals.endpoints.__init__ import *
 from app.internals.dals.access import role_required
@@ -20,7 +24,7 @@ def User_Dashboard():
         'site_title': {'name': 'My Park Place', 'url': Home_Url, 'active': False},
         'nav_items': [
             {'text': 'Home', 'url': User_Home_Url, 'active': False},
-            {'text': 'Summary', 'url': Login_Url, 'active': False}
+            {'text': 'Summary', 'url': User_Summary_Url, 'active': False}
         ],
         'logout': True
     }
@@ -62,7 +66,7 @@ def Book_Spot(lot_id):
         'site_title': {'name': 'My Park Place', 'url': Home_Url, 'active': False},
         'nav_items': [
             {'text': 'Home', 'url': User_Home_Url, 'active': False},
-            {'text': 'Summary', 'url': Login_Url, 'active': False}
+            {'text': 'Summary', 'url': User_Summary_Url, 'active': False}
         ],
         'logout': True
     }
@@ -107,9 +111,74 @@ def Release_Spot(reservation_id):
         'site_title': {'name': 'My Park Place', 'url': Home_Url, 'active': False},
         'nav_items': [
             {'text': 'Home', 'url': User_Home_Url, 'active': False},
-            {'text': 'Summary', 'url': Login_Url, 'active': False}
+            {'text': 'Summary', 'url': User_Summary_Url, 'active': False}
         ],
         'logout': True
     }
 
     return render_template('user/release_spot.html', form=form, reservation=reservation, **nav_data)
+
+def User_Summary():
+    user_id = current_user.id
+    reservations = Reservation.query.filter_by(user_id=user_id, status='completed').all()
+    user = User.query.get_or_404(user_id)
+
+    spending_data = {}
+    count_data = {}
+
+    for r in reservations:
+        if r.total_amount is None:
+            continue
+        lot_name = r.spot.parking_lot.location_name
+        spending_data[lot_name] = spending_data.get(lot_name, 0.0) + r.total_amount
+        count_data[lot_name] = count_data.get(lot_name, 0) + 1
+
+    pie_chart = None
+    bar_chart = None
+
+    if spending_data:
+        # Pie Chart for spending
+        pie_labels = list(spending_data.keys())
+        pie_values = list(spending_data.values())
+        fig1, ax1 = plt.subplots()
+        ax1.pie(pie_values, labels=pie_labels, autopct='%1.1f%%', startangle=90)
+        ax1.axis('equal')
+        pie_io = io.BytesIO()
+        plt.savefig(pie_io, format='png')
+        pie_io.seek(0)
+        pie_chart = base64.b64encode(pie_io.read()).decode('utf8')
+        plt.close(fig1)
+
+    if count_data:
+        # Bar Chart for reservation count
+        bar_labels = list(count_data.keys())
+        bar_values = list(count_data.values())
+        fig2, ax2 = plt.subplots()
+        ax2.bar(bar_labels, bar_values, color='skyblue')
+        ax2.set_xlabel('Parking Lot')
+        ax2.set_ylabel('Reservations')
+        bar_io = io.BytesIO()
+        plt.savefig(bar_io, format='png')
+        bar_io.seek(0)
+        bar_chart = base64.b64encode(bar_io.read()).decode('utf8')
+        plt.close(fig2)
+
+    nav_data = {
+        'page_title': 'User Summary',
+        'site_title': {'name': 'My Park Place', 'url': Home_Url, 'active': False},
+        'nav_items': [
+            {'text': 'Home', 'url': User_Home_Url, 'active': False},
+            {'text': 'Summary', 'url': User_Summary_Url, 'active': True}
+        ],
+        'logout': True
+    }
+
+    return render_template(
+        'user/summary.html',
+        reservations=reservations,
+        user_id=user_id,
+        user=user,
+        pie_chart=pie_chart,
+        bar_chart=bar_chart,
+        **nav_data
+    )

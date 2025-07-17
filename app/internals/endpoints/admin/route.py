@@ -54,3 +54,9 @@ def delete_spot(spot_id):
 @role_required('admin')
 def view_parking_lot(lot_id):
     return View_Parking_Lot(lot_id)
+
+@app.route('/admin/summary')
+@jwt_required()
+@role_required('admin')
+def admin_summary():
+    return Admin_Summary()

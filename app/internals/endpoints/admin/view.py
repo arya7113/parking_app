@@ -1,8 +1,10 @@
 from app.internals.endpoints.__init__ import *
 from app.internals.models.model import *
-from flask_jwt_extended import jwt_required, create_access_token, current_user
 from app.internals.endpoints.auth.form import *
 from app.internals.endpoints.admin.form import *
+import matplotlib.pyplot as plt
+import io
+import base64
 
 
 def Admin_Dashboard():
@@ -42,7 +44,7 @@ def Admin_Dashboard():
         'nav_items': [
             {'text': 'Home', 'url': Admin_Home_Url, 'active': True},
             {'text': 'Users', 'url': Admin_Users_Url, 'active': False},
-            {'text': 'Summary', 'url': Login_Url, 'active': False}
+            {'text': 'Summary', 'url': Admin_Summary_Url, 'active': False}
         ],
         'logout': True
     }
@@ -61,7 +63,7 @@ def Add_Parking_Lot():
         'nav_items': [
             {'text': 'Home', 'url': Admin_Home_Url, 'active': False},
             {'text': 'Users', 'url': Admin_Users_Url, 'active': False},
-            {'text': 'Summary', 'url': Login_Url, 'active': False}
+            {'text': 'Summary', 'url':Admin_Summary_Url, 'active': False}
         ],
         'logout': True
     }
@@ -112,7 +114,7 @@ def Edit_Parking_Lot(lot_id):
         'nav_items': [
             {'text': 'Home', 'url': Admin_Home_Url, 'active': False},
             {'text': 'Users', 'url': Admin_Users_Url, 'active': False},
-            {'text': 'Summary', 'url': Login_Url, 'active': False}
+            {'text': 'Summary', 'url': Admin_Summary_Url, 'active': False}
         ],
         'logout': True
     }
@@ -222,7 +224,7 @@ def Admin_User_View():
         'nav_items': [
             {'text': 'Home', 'url': Admin_Home_Url, 'active': False},
             {'text': 'Users', 'url': Admin_Users_Url, 'active': True},
-            {'text': 'Summary', 'url': Login_Url, 'active': False}
+            {'text': 'Summary', 'url': Admin_Summary_Url, 'active': False}
         ],
         'logout': True
     }
@@ -241,7 +243,7 @@ def View_Spot(spot_id):
         'nav_items': [
             {'text': 'Home', 'url': Admin_Home_Url, 'active': False},
             {'text': 'Users', 'url': Admin_Users_Url, 'active': False},
-            {'text': 'Summary', 'url': Login_Url, 'active': False}
+            {'text': 'Summary', 'url':Admin_Summary_Url, 'active': False}
         ],
         'logout': True
     }
@@ -273,10 +275,69 @@ def View_Parking_Lot(lot_id):
         'nav_items': [
             {'text': 'Home', 'url': Admin_Home_Url, 'active': False},
             {'text': 'Users', 'url': Admin_Users_Url, 'active': False},
-            {'text': 'Summary', 'url': Login_Url, 'active': False}
+            {'text': 'Summary', 'url': Admin_Summary_Url, 'active': False}
         ],
         'logout': True
     }
 
     return render_template(
         'admin/view_parking_lot.html',lot=lot,**nav_data)
+
+def Admin_Summary():
+    
+    available = Parking_Spot.query.filter_by(status='available').count()
+    occupied = Parking_Spot.query.filter_by(status='occupied').count()
+    total = available + occupied
+
+    bar_chart = None
+    if total > 0:
+        # Bar Chart for Spot Availability
+        fig1, ax1 = plt.subplots()
+        ax1.bar(['Available', 'Occupied'], [available, occupied], color=['green', 'red'])
+        ax1.set_ylabel('Spots')
+        io_bar = io.BytesIO()
+        plt.savefig(io_bar, format='png')
+        io_bar.seek(0)
+        bar_chart = base64.b64encode(io_bar.read()).decode('utf8')
+        plt.close(fig1)
+
+    # pie chart
+    lots = Parking_Lots.query.all()
+    revenue_data = {}
+    for lot in lots:
+        reservations = Reservation.query.join(Parking_Spot).filter(
+            Parking_Spot.lot_id == lot.id,
+            Reservation.status == 'completed'
+        ).all()
+        total_amount = sum(r.total_amount for r in reservations)
+        if total_amount > 0:
+            revenue_data[lot.location_name] = total_amount
+
+    pie_chart = None
+    if revenue_data:
+        fig2, ax2 = plt.subplots()
+        ax2.pie(revenue_data.values(), labels=revenue_data.keys(), autopct='%1.1f%%', startangle=90)
+        ax2.axis('equal')
+        io_pie = io.BytesIO()
+        plt.savefig(io_pie, format='png')
+        io_pie.seek(0)
+        pie_chart = base64.b64encode(io_pie.read()).decode('utf8')
+        plt.close(fig2)
+
+    nav_data = {
+        'page_title': 'Admin Summary',
+        'site_title': {'name': 'My Park Place', 'url': Home_Url, 'active': False},
+        'nav_items': [    
+            {'text': 'Home', 'url': Admin_Home_Url, 'active': False},
+            {'text': 'Users', 'url': Admin_Users_Url, 'active': False},
+            {'text': 'Summary', 'url': Admin_Summary_Url, 'active': True}
+        ],
+        'logout': True        
+    }
+
+    return render_template('admin/summary.html',
+                           available=available,
+                           occupied=occupied,
+                           bar_chart=bar_chart,
+                           pie_chart=pie_chart,
+                           **nav_data)
