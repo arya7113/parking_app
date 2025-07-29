@@ -44,7 +44,8 @@ def Admin_Dashboard():
         'nav_items': [
             {'text': 'Home', 'url': Admin_Home_Url, 'active': True},
             {'text': 'Users', 'url': Admin_Users_Url, 'active': False},
-            {'text': 'Summary', 'url': Admin_Summary_Url, 'active': False}
+            {'text': 'Summary', 'url': Admin_Summary_Url, 'active': False},
+            {'text': 'Parking Records', 'url': Admin_Parking_Records_Url, 'active': False}
         ],
         'logout': True
     }
@@ -63,7 +64,8 @@ def Add_Parking_Lot():
         'nav_items': [
             {'text': 'Home', 'url': Admin_Home_Url, 'active': False},
             {'text': 'Users', 'url': Admin_Users_Url, 'active': False},
-            {'text': 'Summary', 'url':Admin_Summary_Url, 'active': False}
+            {'text': 'Summary', 'url':Admin_Summary_Url, 'active': False},
+            {'text': 'Parking Records', 'url': Admin_Parking_Records_Url, 'active': False}
         ],
         'logout': True
     }
@@ -114,7 +116,8 @@ def Edit_Parking_Lot(lot_id):
         'nav_items': [
             {'text': 'Home', 'url': Admin_Home_Url, 'active': False},
             {'text': 'Users', 'url': Admin_Users_Url, 'active': False},
-            {'text': 'Summary', 'url': Admin_Summary_Url, 'active': False}
+            {'text': 'Summary', 'url': Admin_Summary_Url, 'active': False},
+            {'text': 'Parking Records', 'url': Admin_Parking_Records_Url, 'active': False}
         ],
         'logout': True
     }
@@ -180,13 +183,20 @@ def Delete_Parking_Lot(lot_id):
     lot = Parking_Lots.query.get_or_404(lot_id)
 
     try:
+        # Step 1: Block deletion if any spot is occupied
         occupied_count = Parking_Spot.query.filter_by(lot_id=lot.id, status='occupied').count()
         if occupied_count > 0:
             flash("Cannot delete lot with occupied spots.", "danger")
             return redirect(url_for('admin_dashboard'))
 
-        Parking_Spot.query.filter_by(lot_id=lot.id).delete()
+        # Step 2: For each spot, nullify spot_id in related reservations
+        spots = Parking_Spot.query.filter_by(lot_id=lot.id).all()
+        for spot in spots:
+            for reservation in spot.reservations:
+                reservation.spot_id = None  # Make sure spot_id is nullable in Reservation model
+            db.session.delete(spot)  # Step 3: Delete the spot
 
+        # Step 4: Delete the lot
         db.session.delete(lot)
         db.session.commit()
         flash('Parking lot deleted successfully!', 'success')
@@ -224,7 +234,8 @@ def Admin_User_View():
         'nav_items': [
             {'text': 'Home', 'url': Admin_Home_Url, 'active': False},
             {'text': 'Users', 'url': Admin_Users_Url, 'active': True},
-            {'text': 'Summary', 'url': Admin_Summary_Url, 'active': False}
+            {'text': 'Summary', 'url': Admin_Summary_Url, 'active': False},
+            {'text': 'Parking Records', 'url': Admin_Parking_Records_Url, 'active': False}
         ],
         'logout': True
     }
@@ -243,7 +254,8 @@ def View_Spot(spot_id):
         'nav_items': [
             {'text': 'Home', 'url': Admin_Home_Url, 'active': False},
             {'text': 'Users', 'url': Admin_Users_Url, 'active': False},
-            {'text': 'Summary', 'url':Admin_Summary_Url, 'active': False}
+            {'text': 'Summary', 'url':Admin_Summary_Url, 'active': False},
+            {'text': 'Parking Records', 'url': Admin_Parking_Records_Url, 'active': False}
         ],
         'logout': True
     }
@@ -252,13 +264,18 @@ def View_Spot(spot_id):
 def Delete_Spot(spot_id):
     spot = Parking_Spot.query.get_or_404(spot_id)
     
+    
     if spot.status == 'available':
+        reservations = Reservation.query.filter_by(spot_id=spot.id).all()
+        for r in reservations:
+            r.spot_id = None 
+
         lot = Parking_Lots.query.get(spot.lot_id)
-        db.session.delete(spot)
         
         if lot.total_spots > 0:
             lot.total_spots -= 1
 
+        db.session.delete(spot)
         db.session.commit()
         flash('Spot deleted successfully and lot updated.', 'success')
     else:
@@ -275,7 +292,8 @@ def View_Parking_Lot(lot_id):
         'nav_items': [
             {'text': 'Home', 'url': Admin_Home_Url, 'active': False},
             {'text': 'Users', 'url': Admin_Users_Url, 'active': False},
-            {'text': 'Summary', 'url': Admin_Summary_Url, 'active': False}
+            {'text': 'Summary', 'url': Admin_Summary_Url, 'active': False},
+            {'text': 'Parking Records', 'url': Admin_Parking_Records_Url, 'active': False}
         ],
         'logout': True
     }
@@ -284,7 +302,6 @@ def View_Parking_Lot(lot_id):
         'admin/view_parking_lot.html',lot=lot,**nav_data)
 
 def Admin_Summary():
-    
     available = Parking_Spot.query.filter_by(status='available').count()
     occupied = Parking_Spot.query.filter_by(status='occupied').count()
     total = available + occupied
@@ -330,7 +347,9 @@ def Admin_Summary():
         'nav_items': [    
             {'text': 'Home', 'url': Admin_Home_Url, 'active': False},
             {'text': 'Users', 'url': Admin_Users_Url, 'active': False},
-            {'text': 'Summary', 'url': Admin_Summary_Url, 'active': True}
+            {'text': 'Summary', 'url': Admin_Summary_Url, 'active': True},
+            {'text': 'Parking Records', 'url': Admin_Parking_Records_Url, 'active': False}
+
         ],
         'logout': True        
     }
@@ -341,3 +360,34 @@ def Admin_Summary():
                            bar_chart=bar_chart,
                            pie_chart=pie_chart,
                            **nav_data)
+
+def Parking_Records():
+    nav_data = {
+        'page_title': 'Paking Records',
+        'site_title': {'name': 'My Park Place', 'url': Home_Url, 'active': False},
+        'nav_items': [
+            {'text': 'Home', 'url': Admin_Home_Url, 'active': False},
+            {'text': 'Users', 'url': Admin_Users_Url, 'active': False},
+            {'text': 'Summary', 'url': Admin_Summary_Url, 'active': False},
+            {'text': 'Parking Records', 'url': Admin_Parking_Records_Url, 'active': True}
+        ],
+        'logout': True
+    }
+    reservations = Reservation.query.order_by(Reservation.parking_in_time.desc()).all()
+    data = []
+
+    for res in reservations:
+        data.append({
+            'id': res.id,
+            'username': res.user.username if res.user else 'Unknown User',
+            'vehicle_number': res.vehicle_number,
+            'lot': res.spot.parking_lot.location_name if res.spot and res.spot.parking_lot else 'Deleted Lot',
+            'spot_number': res.spot.spot_number if res.spot else 'Deleted Spot',
+            'check_in': res.parking_in_time.strftime('%Y-%m-%d %H:%M'),
+            'check_out': res.parking_out_time.strftime('%Y-%m-%d %H:%M') if res.parking_out_time else 'Ongoing',
+            'amount': f"₹{res.total_amount:.2f}" if res.total_amount is not None else 'N/A'
+        })
+
+
+    return render_template('admin/parking_records.html', records=data, **nav_data)
+    

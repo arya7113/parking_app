@@ -48,7 +48,7 @@ class Parking_Lots(db.Model):
 class Parking_Spot(db.Model):
     __tablename__ = 'parking_spot'
     id = db.Column(db.Integer(), primary_key=True)
-    lot_id = db.Column(db.Integer(), db.ForeignKey('parking_lots.id'), nullable=False)
+    lot_id = db.Column(db.Integer(), db.ForeignKey('parking_lots.id'), nullable=True)
     spot_number = db.Column(db.String(10), nullable=False)
     status = db.Column(db.Enum('available', 'occupied'), default='available', nullable=False)
     parking_lot = db.relationship('Parking_Lots', backref=db.backref('spots', lazy=True))
@@ -56,7 +56,7 @@ class Parking_Spot(db.Model):
 class Reservation(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     user_id = db.Column(db.Integer(), db.ForeignKey('user.id'), nullable=False)
-    spot_id = db.Column(db.Integer(), db.ForeignKey('parking_spot.id'), nullable=False)
+    spot_id = db.Column(db.Integer(), db.ForeignKey('parking_spot.id'), nullable=True)
     vehicle_number = db.Column(db.String(15), nullable=False)
     parking_in_time = db.Column(db.DateTime(), nullable=False)
     parking_out_time = db.Column(db.DateTime(), nullable=True)

@@ -60,3 +60,9 @@ def view_parking_lot(lot_id):
 @role_required('admin')
 def admin_summary():
     return Admin_Summary()
+
+@app.route('/admin/parking_records')
+@jwt_required()
+@role_required('admin')
+def parking_records():
+    return Parking_Records()

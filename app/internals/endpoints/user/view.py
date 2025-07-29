@@ -79,32 +79,39 @@ def Release_Spot(reservation_id):
     reservation = Reservation.query.get_or_404(reservation_id)
     form = ReleaseSpotForm()
 
-    if form.validate_on_submit():
-        print("Form submitted successfully")
-        
+    if not reservation.spot:
+        flash("The parking spot associated with this reservation no longer exists.", "danger")
+        return redirect(url_for('user_dashboard'))
+
+    if request.method == 'GET':
+        reservation.parking_out_time = datetime.now()
+        duration = (reservation.parking_out_time - reservation.parking_in_time).total_seconds() / 3600
+        reservation.total_amount = round(duration * reservation.spot.parking_lot.price_per_hour, 2)
+
+        # Prefill the form fields
+        form.spot_id.data = reservation.spot_id
+        form.vehicle_number.data = reservation.vehicle_number
+        form.parking_in_time.data = reservation.parking_in_time.strftime('%Y-%m-%d %H:%M:%S')
+        form.parking_out_time.data = reservation.parking_out_time.strftime('%Y-%m-%d %H:%M:%S')
+        form.total_cost.data = f"{reservation.total_amount:.2f}"
+
+    elif form.validate_on_submit():
         reservation.status = 'completed'
         reservation.parking_out_time = datetime.now()
 
         duration = (reservation.parking_out_time - reservation.parking_in_time).total_seconds() / 3600
         reservation.total_amount = round(duration * reservation.spot.parking_lot.price_per_hour, 2)
 
-        reservation.spot.status = 'available'
-        db.session.commit()
+        # Set spot as available and update lot count
+        if reservation.spot:
+            reservation.spot.status = 'available'
+            lot = reservation.spot.parking_lot
+            if lot:
+                lot.available_spots += 1
 
+        db.session.commit()
         flash('Spot released successfully!', 'success')
         return redirect(url_for('user_dashboard'))
-
-    # Prefill the form only on GET
-    if request.method == 'GET':
-        reservation.parking_out_time = datetime.now()
-        duration = (reservation.parking_out_time - reservation.parking_in_time).total_seconds() / 3600
-        reservation.total_amount = round(duration * reservation.spot.parking_lot.price_per_hour, 2)
-
-        form.spot_id.data = reservation.spot_id
-        form.vehicle_number.data = reservation.vehicle_number
-        form.parking_in_time.data = reservation.parking_in_time.strftime('%Y-%m-%d %H:%M:%S')
-        form.parking_out_time.data = reservation.parking_out_time.strftime('%Y-%m-%d %H:%M:%S')
-        form.total_cost.data = f"{reservation.total_amount:.2f}"
 
     nav_data = {
         'page_title': 'Release Spot',
@@ -118,6 +125,7 @@ def Release_Spot(reservation_id):
 
     return render_template('user/release_spot.html', form=form, reservation=reservation, **nav_data)
 
+
 def User_Summary():
     user_id = current_user.id
     reservations = Reservation.query.filter_by(user_id=user_id, status='completed').all()
@@ -127,11 +135,11 @@ def User_Summary():
     count_data = {}
 
     for r in reservations:
-        if r.total_amount is None:
-            continue
-        lot_name = r.spot.parking_lot.location_name
-        spending_data[lot_name] = spending_data.get(lot_name, 0.0) + r.total_amount
-        count_data[lot_name] = count_data.get(lot_name, 0) + 1
+        if r.spot and r.spot.parking_lot:
+            lot_name = r.spot.parking_lot.location_name
+            spending_data[lot_name] = spending_data.get(lot_name, 0.0) + r.total_amount
+            count_data[lot_name] = count_data.get(lot_name, 0) + 1
+
 
     pie_chart = None
     bar_chart = None
