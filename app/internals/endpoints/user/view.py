@@ -19,6 +19,17 @@ def User_Dashboard():
         .order_by(Reservation.parking_in_time.desc())
         .all())
     lots = Parking_Lots.query.all()
+    lots_data = []
+
+    for lot in lots:
+        available = Parking_Spot.query.filter_by(lot_id=lot.id, status='available').count()
+        lots_data.append({
+            'id': lot.id,
+            'location_name': lot.location_name,
+            'address': lot.address,
+            'price_per_hour': lot.price_per_hour,
+            'available_spots': available
+        })
     nav_data = {
         'page_title': 'User Dashboard',
         'site_title': {'name': 'My Park Place', 'url': Home_Url, 'active': False},
@@ -28,7 +39,7 @@ def User_Dashboard():
         ],
         'logout': True
     }
-    return render_template('user/dashboard.html', **nav_data, reservations=reservations,lots=lots, user_id=user_id)
+    return render_template('user/dashboard.html', **nav_data, reservations=reservations,lots=lots_data, user_id=user_id)
 
 def Book_Spot(lot_id):
     lot = Parking_Lots.query.get_or_404(lot_id)
